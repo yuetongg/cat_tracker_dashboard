@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import {
   GoogleAuthProvider,
@@ -10,6 +9,10 @@ import {
 } from "firebase/auth";
 import { collection, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+
+import DashboardFilters from "@/components/DashboardFilters";
+import CatsByLocation from "@/components/CatsByLocation";
+import { cycles } from "@/lib/cycles";
 
 type Cat = {
   id: string;
@@ -22,6 +25,9 @@ export default function Home() {
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedCycleId, setSelectedCycleId] = useState(
+    cycles[cycles.length - 1].id
+  );
 
   // Check login
   useEffect(() => {
@@ -72,17 +78,7 @@ export default function Home() {
   }
 
   // Count cats by location
-  const catsByLocation: Record<string, number> = {};
 
-  cats.forEach((cat) => {
-    const location = cat.lastSpottedLocation || "Unknown";
-
-    if (catsByLocation[location]) {
-      catsByLocation[location]++;
-    } else {
-      catsByLocation[location] = 1;
-    }
-  });
 
   if (loading) {
     return <main>Checking login...</main>;
@@ -113,16 +109,14 @@ export default function Home() {
       <button onClick={handleLogout}>
         Sign out
       </button>
-
       <hr />
 
-      <h2>Cats by Location</h2>
+      <DashboardFilters
+        selectedCycleId={selectedCycleId}
+        onCycleChange={setSelectedCycleId}
+      />    
 
-      {Object.entries(catsByLocation).map(([location, count]) => (
-        <div key={location}>
-          <strong>{location}</strong>: {count} cats
-        </div>
-      ))}
+      <CatsByLocation cats={cats} />
     </main>
   );
 }
