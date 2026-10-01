@@ -13,8 +13,12 @@ import { auth, db } from "@/lib/firebase";
 import DashboardFilters from "@/components/DashboardFilters";
 import CatsByLocation from "@/components/CatsByLocation";
 import { cycles } from "@/lib/cycles";
+import { Cat } from "@/lib/types";
+import { getLogsForCats } from "@/lib/catlogs";
+import { catIsActiveInCycle, logIsInCycle } from "@/lib/cycleUtils";
+import StatCards from "@/components/StatCards";
 
-type Cat = {
+type CatLastSpotted = {
   id: string;
   name?: string;
   lastSpottedLocation?: string;
@@ -25,9 +29,24 @@ export default function Home() {
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedCycleId, setSelectedCycleId] = useState(
-    cycles[cycles.length - 1].id
-  );
+  const [selectedCycleId, setSelectedCycleId] = useState("");
+
+  const selectedCycle = cycles.find(
+  (cycle) => cycle.id === selectedCycleId
+);
+  const totalCats = cats.length;
+
+const activeCats = selectedCycle
+  ? cats.filter((cat) =>
+      catIsActiveInCycle(cat, selectedCycle)
+    )
+  : [];
+
+const inactiveCats = selectedCycle
+  ? cats.filter((cat) =>
+      !catIsActiveInCycle(cat, selectedCycle)
+    )
+  : [];
 
   // Check login
   useEffect(() => {
@@ -38,26 +57,23 @@ export default function Home() {
 
     return unsubscribe;
   }, []);
-
+  
   // Get cats
   useEffect(() => {
     if (!user) return;
 
-    async function loadCats() {
-      try {
-        const snapshot = await getDocs(collection(db, "cats"));
+ async function loadCats() {
+  const snapshot = await getDocs(collection(db, "cats"));
 
-        const catData: Cat[] = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Cat[];
+  const catData = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Cat[];
 
-        setCats(catData);
-      } catch (err) {
-        console.error(err);
-        setError("Could not load cats.");
-      }
-    }
+  const catsWithLogs = await getLogsForCats(catData);
+
+  setCats(catsWithLogs);
+}
 
     loadCats();
   }, [user]);
@@ -115,8 +131,13 @@ export default function Home() {
         selectedCycleId={selectedCycleId}
         onCycleChange={setSelectedCycleId}
       />    
-
+      <StatCards
+        totalCats={totalCats}
+        activeCats={activeCats.length}
+        inactiveCats={inactiveCats.length}
+      />
       <CatsByLocation cats={cats} />
     </main>
   );
 }
+
