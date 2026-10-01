@@ -3,6 +3,8 @@ import { cycles } from "@/lib/cycles";
 type Props = {
   selectedCycleId: string;
   onCycleChange: (cycleId: string) => void;
+  selectedDate: string;
+  onDateChange: (date: string) => void;
 };
 
 function formatDate(dateString: string) {
@@ -13,6 +15,8 @@ function formatDate(dateString: string) {
 export default function DashboardFilters({
   selectedCycleId,
   onCycleChange,
+  selectedDate,
+  onDateChange,
 }: Props) {
   const selectedCycle = cycles.find(
     (cycle) => cycle.id === selectedCycleId
@@ -42,6 +46,15 @@ export default function DashboardFilters({
           {formatDate(selectedCycle.end)}
         </p>
       )}
+
+      <label htmlFor="date">Date: </label>
+
+      <input
+        id="date"
+        type="date"
+        value={selectedDate}
+        onChange={(e) => onDateChange(e.target.value)}
+      />
     </section>
   );
 }

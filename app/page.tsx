@@ -14,6 +14,7 @@ import DashboardFilters from "@/components/DashboardFilters";
 import CatsByLocation from "@/components/CatsByLocation";
 import { cycles } from "@/lib/cycles";
 import { Cat } from "@/lib/types";
+import { getFeedingCount } from "@/lib/feedingUtils";
 import { getLogsForCats } from "@/lib/catlogs";
 import { catIsActiveInCycle, logIsInCycle } from "@/lib/cycleUtils";
 import StatCards from "@/components/StatCards";
@@ -30,7 +31,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedCycleId, setSelectedCycleId] = useState("");
-
+  const [selectedDate, setSelectedDate] = useState("");
   const selectedCycle = cycles.find(
   (cycle) => cycle.id === selectedCycleId
 );
@@ -47,6 +48,10 @@ const inactiveCats = selectedCycle
       !catIsActiveInCycle(cat, selectedCycle)
     )
   : [];
+
+  const feedingCount = selectedCycle
+  ? getFeedingCount(cats, selectedCycle, selectedDate)
+  : null;
 
   // Check login
   useEffect(() => {
@@ -128,13 +133,17 @@ const inactiveCats = selectedCycle
       <hr />
 
       <DashboardFilters
-        selectedCycleId={selectedCycleId}
-        onCycleChange={setSelectedCycleId}
-      />    
+      selectedCycleId={selectedCycleId}
+      onCycleChange={setSelectedCycleId}
+      selectedDate={selectedDate}
+      onDateChange={setSelectedDate}
+    /> 
       <StatCards
         totalCats={totalCats}
         activeCats={activeCats.length}
         inactiveCats={inactiveCats.length}
+        feedingCount={feedingCount}
+
       />
       <CatsByLocation cats={cats} />
     </main>
