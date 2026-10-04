@@ -3,6 +3,7 @@
 import { Cat } from "@/lib/types";
 import { useState } from "react";
 import { cycles } from "@/lib/cycles";
+import CatDetailModal from "./CatDetailModal";
 import {
   PieChart,
   Pie,
@@ -31,6 +32,8 @@ export default function CatStatusCard({
   activeCats,
   inactiveCats,
 }: Props) {
+const [selectedCat, setSelectedCat] =
+  useState<Cat | null>(null);
   const selectedCycle = cycles.find(
     (cycle) => cycle.id === selectedCycleId
   );
@@ -157,22 +160,30 @@ export default function CatStatusCard({
                 : inactiveCats
                 ).map((cat) => (
                 <li key={cat.id}>
-                    <strong>
-                    {cat.name ?? "Unnamed cat"}
-                    </strong>
+                    <button
+                        onClick={() => setSelectedCat(cat)}
+                    >
+                        <strong>
+                        {cat.name ?? "Unnamed cat"}
+                        </strong>
 
-                    {cat.lastSpottedLocation && (
-                    <span>
-                        {" "}
-                        - {cat.lastSpottedLocation}
-                    </span>
-                    )}
-                </li>
+                        {cat.lastSpottedLocation && (
+                        <span>
+                            {" "}
+                            - {cat.lastSpottedLocation}
+                        </span>
+                        )}
+                    </button>
+                    </li>
                 ))}
             </ul>
             )}
         </div>
         )}
+        <CatDetailModal
+            cat={selectedCat}
+            onClose={() => setSelectedCat(null)}
+            />
     </section>
   );
 }

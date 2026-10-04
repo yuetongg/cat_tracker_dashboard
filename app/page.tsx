@@ -14,15 +14,12 @@ import { auth, db } from "@/lib/firebase";
 import CatsByLocation from "@/components/CatsByLocation";
 import { cycles } from "@/lib/cycles";
 import { Cat } from "@/lib/types";
-import {
-  getFeedingCount,
-  getFeedingsByDate,
-} from "@/lib/feedingUtils";
 
 import { getLogsForCats } from "@/lib/catlogs";
 import { catIsActiveInCycle, logIsInCycle } from "@/lib/cycleUtils";
 import CatStatusCard from "@/components/CatStatusCard";
 import FeedingCard from "@/components/FeedingCard";
+import CatAlertsCard from "@/components/CatAlertsCard";
 
 type CatLastSpotted = {
   id: string;
@@ -56,11 +53,6 @@ const inactiveCats = selectedCycle
   : [];
 
 
-  const feedingCount = getFeedingCount(
-    cats,
-    startDate,
-    endDate
-  );
   // Check login
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -155,6 +147,7 @@ const inactiveCats = selectedCycle
         onEndDateChange={setEndDate}
       />
       <CatsByLocation cats={cats} />
+      <CatAlertsCard cats={cats} />
     </main>
   );
 }

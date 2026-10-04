@@ -21,6 +21,7 @@ export type Cat = {
   name?: string;
   lastSpotted?: Timestamp;
   lastSpottedLocation?: string;
+  lastSpottedBy?: string;
   archive?: boolean;
   feedingStatus?: string;
   isInjured?: boolean;
