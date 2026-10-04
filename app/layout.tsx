@@ -2,7 +2,6 @@ import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 
 import {
-  ColorSchemeScript,
   MantineProvider,
   createTheme,
 } from "@mantine/core";
@@ -100,9 +99,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <ColorSchemeScript />
-      </head>
+      
 
       <body
         style={{

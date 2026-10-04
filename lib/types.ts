@@ -19,6 +19,8 @@ export type CatLog = {
 export type Cat = {
   id: string;
   name?: string;
+  imageURL?: string;
+  notes?: string;
   lastSpotted?: Timestamp;
   lastSpottedLocation?: string;
   lastSpottedBy?: string;
