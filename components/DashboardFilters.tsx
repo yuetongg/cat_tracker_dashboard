@@ -3,8 +3,10 @@ import { cycles } from "@/lib/cycles";
 type Props = {
   selectedCycleId: string;
   onCycleChange: (cycleId: string) => void;
-  selectedDate: string;
-  onDateChange: (date: string) => void;
+  startDate: string;
+  endDate: string;
+  onStartDateChange: (date: string) => void;
+  onEndDateChange: (date: string) => void;
 };
 
 function formatDate(dateString: string) {
@@ -15,8 +17,10 @@ function formatDate(dateString: string) {
 export default function DashboardFilters({
   selectedCycleId,
   onCycleChange,
-  selectedDate,
-  onDateChange,
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
 }: Props) {
   const selectedCycle = cycles.find(
     (cycle) => cycle.id === selectedCycleId
@@ -35,26 +39,32 @@ export default function DashboardFilters({
 
         {cycles.map((cycle) => (
           <option key={cycle.id} value={cycle.id}>
-            {cycle.name}
+            {cycle.name} ({formatDate(cycle.start)} - {formatDate(cycle.end)})
           </option>
         ))}
       </select>
 
-      {selectedCycle && (
-        <p>
-          {formatDate(selectedCycle.start)} –{" "}
-          {formatDate(selectedCycle.end)}
-        </p>
-      )}
+      <div>
+  <label htmlFor="startDate">From: </label>
 
-      <label htmlFor="date">Date: </label>
+  <input
+    id="startDate"
+    type="date"
+    value={startDate}
+    onChange={(e) => onStartDateChange(e.target.value)}
+  />
 
-      <input
-        id="date"
-        type="date"
-        value={selectedDate}
-        onChange={(e) => onDateChange(e.target.value)}
-      />
+  <label htmlFor="endDate"> To: </label>
+
+  <input
+    id="endDate"
+    type="date"
+    value={endDate}
+    onChange={(e) => onEndDateChange(e.target.value)}
+  />
+</div>
+
+      
     </section>
   );
 }

@@ -7,17 +7,22 @@ import {
   signOut,
   User,
 } from "firebase/auth";
+
 import { collection, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
-import DashboardFilters from "@/components/DashboardFilters";
 import CatsByLocation from "@/components/CatsByLocation";
 import { cycles } from "@/lib/cycles";
 import { Cat } from "@/lib/types";
-import { getFeedingCount } from "@/lib/feedingUtils";
+import {
+  getFeedingCount,
+  getFeedingsByDate,
+} from "@/lib/feedingUtils";
+
 import { getLogsForCats } from "@/lib/catlogs";
 import { catIsActiveInCycle, logIsInCycle } from "@/lib/cycleUtils";
-import StatCards from "@/components/StatCards";
+import CatStatusCard from "@/components/CatStatusCard";
+import FeedingCard from "@/components/FeedingCard";
 
 type CatLastSpotted = {
   id: string;
@@ -31,7 +36,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedCycleId, setSelectedCycleId] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const selectedCycle = cycles.find(
   (cycle) => cycle.id === selectedCycleId
 );
@@ -49,10 +55,12 @@ const inactiveCats = selectedCycle
     )
   : [];
 
-  const feedingCount = selectedCycle
-  ? getFeedingCount(cats, selectedCycle, selectedDate)
-  : null;
 
+  const feedingCount = getFeedingCount(
+    cats,
+    startDate,
+    endDate
+  );
   // Check login
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -132,18 +140,19 @@ const inactiveCats = selectedCycle
       </button>
       <hr />
 
-      <DashboardFilters
-      selectedCycleId={selectedCycleId}
-      onCycleChange={setSelectedCycleId}
-      selectedDate={selectedDate}
-      onDateChange={setSelectedDate}
-    /> 
-      <StatCards
+      <CatStatusCard
+        selectedCycleId={selectedCycleId}
+        onCycleChange={setSelectedCycleId}
         totalCats={totalCats}
-        activeCats={activeCats.length}
-        inactiveCats={inactiveCats.length}
-        feedingCount={feedingCount}
-
+        activeCats={activeCats}
+        inactiveCats={inactiveCats}
+      />
+      <FeedingCard
+        cats={cats}
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
       />
       <CatsByLocation cats={cats} />
     </main>
