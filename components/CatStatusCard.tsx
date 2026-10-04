@@ -1,16 +1,18 @@
 "use client";
 
-import { Cat } from "@/lib/types";
-import { useState } from "react";
-import { cycles } from "@/lib/cycles";
-import CatDetailModal from "./CatDetailModal";
+import ReactECharts from "echarts-for-react";
+
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-} from "recharts";
+  Card,
+  Group,
+  Select,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+
+import { cycles } from "@/lib/cycles";
+import { Cat } from "@/lib/types";
 
 type Props = {
   selectedCycleId: string;
@@ -21,7 +23,9 @@ type Props = {
 };
 
 function formatDate(dateString: string) {
-  const [year, month, day] = dateString.split("-");
+  const [year, month, day] =
+    dateString.split("-");
+
   return `${day}/${month}/${year}`;
 }
 
@@ -32,158 +36,201 @@ export default function CatStatusCard({
   activeCats,
   inactiveCats,
 }: Props) {
-const [selectedCat, setSelectedCat] =
-  useState<Cat | null>(null);
   const selectedCycle = cycles.find(
     (cycle) => cycle.id === selectedCycleId
   );
-  const [viewingCats, setViewingCats] = useState<
-  "active" | "inactive" | null
->(null);
 
-  const data = [
+  const cycleOptions = cycles.map((cycle) => ({
+    value: cycle.id,
+    label: `${cycle.name} (${formatDate(
+      cycle.start
+    )} – ${formatDate(cycle.end)})`,
+  }));
+
+  const donutOption = {
+  tooltip: {
+    trigger: "item",
+    formatter: "{b}: {c} cats ({d}%)",
+  },
+
+  series: [
     {
-      name: "Active",
-      value: activeCats.length,
+      name: "Cat Status",
+      type: "pie",
+
+      radius: ["60%", "90%"], // ring can grow now that labels are gone
+      center: ["50%", "50%"],
+
+      itemStyle: {
+        borderRadius: 6,
+        borderColor: "#ffffff",
+        borderWidth: 3,
+      },
+
+      // Hide the outside labels (the counts are shown on the right)
+      label: { show: false },
+      labelLine: { show: false },
+
+      // On hover, show "Active 20" in the middle of the donut
+      emphasis: {
+        label: {
+          show: true,
+          position: "center",
+          formatter: "{b}\n{c}",
+          fontSize: 16,
+          fontWeight: 700,
+        },
+      },
+
+      data: [
+        {
+          value: activeCats.length,
+          name: "Active",
+          itemStyle: { color: "#40c057" },
+        },
+        {
+          value: inactiveCats.length,
+          name: "Inactive",
+          itemStyle: { color: "#fa5252" },
+        },
+      ],
     },
-    {
-      name: "Inactive",
-      value: inactiveCats.length,
-    },
-  ];
+  ],
+};
 
   return (
-    <section>
-      <h2>Cat Status</h2>
+    <Card
+      withBorder
+      radius="md"
+      shadow="sm"
+      p="lg"
+    >
+      <Stack gap="md">
 
-      <label htmlFor="cycle">Cycle: </label>
+        {/* Header */}
+        <Group
+          justify="space-between"
+          align="flex-start"
+        >
+          <div>
+            <Title order={2} size="h3">
+              Cat Status
+            </Title>
 
-      <select
-        id="cycle"
-        value={selectedCycleId}
-        onChange={(e) => onCycleChange(e.target.value)}
-      >
-        <option value="">Select a cycle</option>
+            <Text
+              size="sm"
+              c="dimmed"
+              mt={4}
+            >
+              Cat activity during an
+              operational cycle
+            </Text>
+          </div>
 
-        {cycles.map((cycle) => (
-          <option key={cycle.id} value={cycle.id}>
-            {cycle.name} ({formatDate(cycle.start)} –{" "}
-            {formatDate(cycle.end)})
-          </option>
-        ))}
-      </select>
+          <Select
+            label="Cycle"
+            placeholder="Select a cycle"
+            value={
+              selectedCycleId || null
+            }
+            onChange={(value) =>
+              onCycleChange(value ?? "")
+            }
+            data={cycleOptions}
+            w={230}
+            clearable
+          />
+        </Group>
 
-      
-      <div>
-        <div>
-            <p>Total</p>
-            <p>{totalCats}</p>
-        </div>
-
-        {selectedCycle ? (
-            <>
-            <div>
-                <p>Active</p>
-                <p>{activeCats.length}</p>
-            </div>
-
-            <div>
-                <p>Inactive</p>
-                <p>{inactiveCats.length}</p>
-            </div>
-            </>
-        ) : (
-            <p>Select a cycle to view active and inactive cats.</p>
-        )}
-        </div>
-
-      {selectedCycle && (
-        <PieChart width={400} height={300}>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={100}
-            label
+        {!selectedCycle ? (
+          <Card
+            withBorder
+            radius="md"
+            p="xl"
+            bg="gray.0"
           >
-            {data.map((entry) => (
-              <Cell key={entry.name} />
-            ))}
-          </Pie>
-
-          <Tooltip />
-          <Legend />
-        </PieChart>
-      )}
-            {selectedCycle && (
-                <div>
-                    <button onClick={() => setViewingCats("active")}>
-                    View Active Cats
-                    </button>
-
-                    <button onClick={() => setViewingCats("inactive")}>
-                    View Inactive Cats
-                    </button>
-                </div>
-                )}
-                {viewingCats && (
-        <div>
-            <div>
-            <h3>
-                {viewingCats === "active"
-                ? "Active Cats"
-                : "Inactive Cats"}
-            </h3>
-
-            <button onClick={() => setViewingCats(null)}>
-                Close
-            </button>
-            </div>
-
-            {(viewingCats === "active"
-            ? activeCats
-            : inactiveCats
-            ).length === 0 ? (
-            <p>
-                No{" "}
-                {viewingCats === "active"
-                ? "active"
-                : "inactive"}{" "}
-                cats found.
-            </p>
-            ) : (
-            <ul>
-                {(viewingCats === "active"
-                ? activeCats
-                : inactiveCats
-                ).map((cat) => (
-                <li key={cat.id}>
-                    <button
-                        onClick={() => setSelectedCat(cat)}
-                    >
-                        <strong>
-                        {cat.name ?? "Unnamed cat"}
-                        </strong>
-
-                        {cat.lastSpottedLocation && (
-                        <span>
-                            {" "}
-                            - {cat.lastSpottedLocation}
-                        </span>
-                        )}
-                    </button>
-                    </li>
-                ))}
-            </ul>
-            )}
-        </div>
-        )}
-        <CatDetailModal
-            cat={selectedCat}
-            onClose={() => setSelectedCat(null)}
+            <Text
+              ta="center"
+              c="dimmed"
+            >
+              Select a cycle to view
+              cat status.
+            </Text>
+          </Card>
+        ) : (
+          <Group
+            align="center"
+            justify="center"
+            gap="xl"
+            wrap="nowrap"
+          >
+            {/* Donut */}
+            <ReactECharts
+              option={donutOption}
+              style={{
+                width: 220,
+                height: 220,
+              }}
+              opts={{
+                renderer: "canvas",
+              }}
             />
-    </section>
+
+            {/* Summary */}
+            <Stack gap="sm">
+              <div>
+                <Text
+                  size="sm"
+                  c="dimmed"
+                >
+                  Total Cats
+                </Text>
+
+                <Text
+                  fw={700}
+                  size="1.8rem"
+                >
+                  {totalCats}
+                </Text>
+              </div>
+
+              <div>
+                <Text
+                  size="sm"
+                  c="dimmed"
+                >
+                  Active
+                </Text>
+
+                <Text
+                  fw={700}
+                  size="1.4rem"
+                  c="green"
+                >
+                  {activeCats.length}
+                </Text>
+              </div>
+
+              <div>
+                <Text
+                  size="sm"
+                  c="dimmed"
+                >
+                  Inactive
+                </Text>
+
+                <Text
+                  fw={700}
+                  size="1.4rem"
+                  c="red"
+                >
+                  {inactiveCats.length}
+                </Text>
+              </div>
+            </Stack>
+          </Group>
+        )}
+      </Stack>
+    </Card>
   );
 }

@@ -1,13 +1,15 @@
 "use client";
 
+import ReactECharts from "echarts-for-react";
+
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
+  Card,
+  Group,
+  MultiSelect,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 
 import { Cat } from "@/lib/types";
 import { useState } from "react";
@@ -16,116 +18,154 @@ type Props = {
   cats: Cat[];
 };
 
-export default function CatsByLocation({
-  cats,
-}: Props) {
-  const [selectedLocations, setSelectedLocations] =
-    useState<string[]>([]);
+export default function CatsByLocation({ cats }: Props) {
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
 
   const availableLocations = Array.from(
-    new Set(
-      cats.map(
-        (cat) =>
-          cat.lastSpottedLocation ?? "Unknown"
-      )
-    )
+    new Set(cats.map((cat) => cat.lastSpottedLocation ?? "Unknown"))
   ).sort();
 
   const filteredCats =
     selectedLocations.length === 0
       ? cats
       : cats.filter((cat) =>
-          selectedLocations.includes(
-            cat.lastSpottedLocation ?? "Unknown"
-          )
+          selectedLocations.includes(cat.lastSpottedLocation ?? "Unknown")
         );
+
+  const totalCatsInLocations = filteredCats.length;
 
   const locations = new Map<string, number>();
 
   filteredCats.forEach((cat) => {
-    const location =
-      cat.lastSpottedLocation ?? "Unknown";
+    const location = cat.lastSpottedLocation ?? "Unknown";
 
-    locations.set(
-      location,
-      (locations.get(location) ?? 0) + 1
-    );
+    locations.set(location, (locations.get(location) ?? 0) + 1);
   });
 
-  const locationData = Array.from(
-    locations.entries()
-  )
+  const locationData = Array.from(locations.entries())
     .map(([location, count]) => ({
       location,
       count,
     }))
     .sort((a, b) => b.count - a.count);
 
-  function handleLocationChange(
-    location: string
-  ) {
-    setSelectedLocations((current) => {
-      if (current.includes(location)) {
-        return current.filter(
-          (item) => item !== location
-        );
-      }
+    const catLabel = totalCatsInLocations === 1 ? "cat" : "cats";
 
-      return [...current, location];
-    });
-  }
+    const locationLabel =
+      selectedLocations.length === 0
+        ? "all locations"
+        : `${selectedLocations.length} selected location${
+            selectedLocations.length === 1 ? "" : "s"
+          }`;
+
+  const chartOption = {
+    tooltip: {
+      trigger: "axis",
+      axisPointer: {
+        type: "shadow",
+      },
+    },
+
+    grid: {
+      left: 120,
+      right: 30,
+      top: 10,
+      bottom: 30,
+    },
+
+    xAxis: {
+      type: "value",
+      minInterval: 1,
+    },
+
+    yAxis: {
+      type: "category",
+      data: locationData.map((item) => item.location),
+      axisTick: {
+        show: false,
+      },
+    },
+
+    series: [
+      {
+        type: "bar",
+        data: locationData.map((item) => item.count),
+        barMaxWidth: 28,
+
+        itemStyle: {
+          borderRadius: [0, 6, 6, 0],
+        },
+
+        label: {
+          show: true,
+          position: "right",
+          fontWeight: 600,
+        },
+      },
+    ],
+  };
 
   return (
-    <section>
-      <h2>Cats by Location</h2>
+    <Card withBorder radius="md" shadow="sm" p="md">
+      <Stack gap="sm">
+        {/* Header */}
+        <Group justify="space-between" align="flex-start">
+          <div>
+            <Title order={2} size="h3">
+              Cats by Location
+            </Title>
 
-      <p>Block:</p>
+            {/* Compact summary */}
+          <Group gap={6} align="baseline" mt={2}>
+            <Text fw={700} size="lg" lh={1}>
+              {totalCatsInLocations}
+            </Text>
+            <Text size="sm" c="dimmed">
+              {catLabel} in {locationLabel}
+            </Text>
+          </Group>
+          </div>
 
-      <div>
-        {availableLocations.map((location) => (
-          <label key={location}>
-            <input
-              type="checkbox"
-              checked={selectedLocations.includes(
-                location
-              )}
-              onChange={() =>
-                handleLocationChange(location)
-              }
-            />
-
-            {location}
-          </label>
-        ))}
-      </div>
-
-      {locationData.length > 0 ? (
-        <BarChart
-          width={600}
-          height={300}
-          data={locationData}
-          layout="vertical"
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-
-          <XAxis
-            type="number"
-            allowDecimals={false}
+          <MultiSelect
+            placeholder="All locations"
+            data={availableLocations}
+            value={selectedLocations}
+            onChange={setSelectedLocations}
+            clearable
+            searchable
+            w={240}
+            size="sm"
+            maxDropdownHeight={250}
+            styles={{
+              input: {
+                overflow: "hidden",
+              },
+              pillsList: {
+                flexWrap: "nowrap",
+                overflow: "hidden",
+              },
+            }}
           />
+        </Group>
 
-          <YAxis
-            type="category"
-            dataKey="location"
-            width={150}
+        {/* Chart */}
+        {locationData.length > 0 ? (
+          <ReactECharts
+            option={chartOption}
+            style={{
+              width: "100%",
+              height: 260,
+            }}
+            opts={{
+              renderer: "canvas",
+            }}
           />
-
-          <Tooltip />
-
-          <Bar dataKey="count" />
-        </BarChart>
-      ) : (
-        <p>No cats found.</p>
-      )}
-    </section>
+        ) : (
+          <Text ta="center" c="dimmed" py="xl">
+            No cats found for the selected locations.
+          </Text>
+        )}
+      </Stack>
+    </Card>
   );
 }

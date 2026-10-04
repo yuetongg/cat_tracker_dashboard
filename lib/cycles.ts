@@ -6,12 +6,7 @@ export type Cycle = {
 };
 
 export const cycles = [
-{
-    id: "2025/2026-cycle-1",
-    name: "Cycle 1",
-    start: "2025-12-22",
-    end: "2026-02-27",
-  },
+
   {
     id: "2026-cycle-2",
     name: "Cycle 2",

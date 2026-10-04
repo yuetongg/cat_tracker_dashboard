@@ -1,6 +1,19 @@
 "use client";
 
 import { useState } from "react";
+
+import {
+  Badge,
+  Button,
+  Card,
+  Group,
+  Modal,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+
 import { Cat } from "@/lib/types";
 import CatDetailModal from "./CatDetailModal";
 
@@ -11,11 +24,13 @@ type Props = {
 export default function CatAlertsCard({
   cats,
 }: Props) {
-  const [viewingCats, setViewingCats] = useState<
-    "injured" | "notSeen" | null
-  >(null);
+  const [viewingCats, setViewingCats] =
+    useState<"injured" | "notSeen" | null>(
+      null
+    );
+
   const [selectedCat, setSelectedCat] =
-  useState<Cat | null>(null);
+    useState<Cat | null>(null);
 
   const injuredCats = cats.filter(
     (cat) => cat.isInjured === true
@@ -26,9 +41,7 @@ export default function CatAlertsCard({
     7 * 24 * 60 * 60 * 1000;
 
   const notSeenCats = cats.filter((cat) => {
-    if (!cat.lastSpotted) {
-      return true;
-    }
+    if (!cat.lastSpotted) return true;
 
     return (
       cat.lastSpotted.toDate().getTime() <
@@ -42,84 +55,178 @@ export default function CatAlertsCard({
       : notSeenCats;
 
   return (
-    <section>
-      <h2>Cat Alerts</h2>
+    <>
+      <Card
+        withBorder
+        radius="md"
+        shadow="sm"
+        p="lg"
+      >
+        <Stack gap="lg">
 
-      <div>
-        <div>
-          <p>Injured</p>
-          <p>{injuredCats.length}</p>
-        </div>
+          {/* Header */}
+          <div>
+            <Title order={2} size="h3">
+              Cat Alerts
+            </Title>
 
-        <div>
-          <p>Not Seen &gt; 7 Days</p>
-          <p>{notSeenCats.length}</p>
-        </div>
-      </div>
+            <Text
+              size="sm"
+              c="dimmed"
+              mt={4}
+            >
+              Cats requiring attention
+            </Text>
+          </div>
 
-      <div>
-        <button
-          onClick={() =>
-            setViewingCats("injured")
-          }
-        >
-          View Injured Cats
-        </button>
-
-        <button
-          onClick={() =>
-            setViewingCats("notSeen")
-          }
-        >
-          View Not Seen Cats
-        </button>
-      </div>
-
-      {viewingCats && (
-        <div>
-          <h3>
-            {viewingCats === "injured"
-              ? "Injured Cats"
-              : "Cats Not Seen for More Than 7 Days"}
-          </h3>
-
-          <button
-            onClick={() => setViewingCats(null)}
+          {/* Alert counts */}
+          <SimpleGrid
+            cols={{
+              base: 2,
+              sm: 2,
+            }}
           >
-            Close
-          </button>
+            <Card
+              withBorder
+              radius="md"
+              p="md"
+              bg="red.0"
+            >
+              <Group
+                justify="space-between"
+                align="flex-start"
+              >
+                <div>
+                  <Text
+                    size="sm"
+                    c="dimmed"
+                  >
+                    Injured
+                  </Text>
 
-          {catsToView.length === 0 ? (
-            <p>No cats found.</p>
-          ) : (
-            <ul>
-              {catsToView.map((cat) => (
-                <li key={cat.id}>
-                <button
-                    onClick={() => setSelectedCat(cat)}
+                  <Text
+                    fw={700}
+                    size="2rem"
+                    c="red.7"
+                  >
+                    {injuredCats.length}
+                  </Text>
+                </div>
+
+                <Badge
+                  color="red"
+                  variant="light"
                 >
-                    <strong>
-                    {cat.name ?? "Unnamed cat"}
-                    </strong>
+                  Alert
+                </Badge>
+              </Group>
+            </Card>
 
-                    {cat.lastSpottedLocation && (
-                    <span>
-                        {" "}
-                        - {cat.lastSpottedLocation}
-                    </span>
-                    )}
-                </button>
-                </li>
-              ))
-              }
-            </ul>
+            <Card
+              withBorder
+              radius="md"
+              p="md"
+              bg="orange.0"
+            >
+              <Group
+                justify="space-between"
+                align="flex-start"
+              >
+                <div>
+                  <Text
+                    size="sm"
+                    c="dimmed"
+                  >
+                    Not Seen &gt; 7 Days
+                  </Text>
+
+                  <Text
+                    fw={700}
+                    size="2rem"
+                    c="orange.7"
+                  >
+                    {notSeenCats.length}
+                  </Text>
+                </div>
+
+                <Badge
+                  color="orange"
+                  variant="light"
+                >
+                  Check
+                </Badge>
+              </Group>
+            </Card>
+          </SimpleGrid>
+
+          {/* Buttons */}
+          
+
+        </Stack>
+      </Card>
+
+      {/* Alert list modal */}
+      <Modal
+        opened={viewingCats !== null}
+        onClose={() =>
+          setViewingCats(null)
+        }
+        title={
+          viewingCats === "injured"
+            ? "Injured Cats"
+            : "Cats Not Seen for More Than 7 Days"
+        }
+        centered
+        size="md"
+      >
+        <Stack gap="xs">
+          {catsToView.length === 0 ? (
+            <Text c="dimmed">
+              No cats found.
+            </Text>
+          ) : (
+            catsToView.map((cat) => (
+              <Button
+                key={cat.id}
+                variant="subtle"
+                color="dark"
+                justify="space-between"
+                fullWidth
+                onClick={() => {
+                  setViewingCats(null);
+                  setSelectedCat(cat);
+                }}
+              >
+                <Group gap="xs">
+                  <Text fw={600}>
+                    {cat.name ??
+                      "Unnamed cat"}
+                  </Text>
+
+                  {cat.lastSpottedLocation && (
+                    <Text
+                      size="sm"
+                      c="dimmed"
+                    >
+                      {
+                        cat.lastSpottedLocation
+                      }
+                    </Text>
+                  )}
+                </Group>
+              </Button>
+            ))
           )}
-        </div>
-      )}
+        </Stack>
+      </Modal>
+
+      {/* Cat detail */}
       <CatDetailModal
         cat={selectedCat}
-        onClose={() => setSelectedCat(null)}
-        />
-    </section>
+        onClose={() =>
+          setSelectedCat(null)
+        }
+      />
+    </>
   );
 }

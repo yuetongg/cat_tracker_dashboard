@@ -9,6 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@mantine/core": "^9.6.3",
+    "@mantine/dates": "^9.6.3",
+    "@mantine/hooks": "^9.6.3",
+    "echarts": "^6.1.0",
+    "echarts-for-react": "^3.0.6",
     "firebase": "^12.19.0",
     "next": "16.3.7",
     "react": "19.2.8",

@@ -7,7 +7,15 @@ import {
   signOut,
   User,
 } from "firebase/auth";
-
+import {
+  Button,
+  Container,
+  Grid,
+  Group,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import { collection, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
@@ -20,7 +28,7 @@ import { catIsActiveInCycle, logIsInCycle } from "@/lib/cycleUtils";
 import CatStatusCard from "@/components/CatStatusCard";
 import FeedingCard from "@/components/FeedingCard";
 import CatAlertsCard from "@/components/CatAlertsCard";
-
+import LoginPage from "@/components/LoginPage";
 type CatLastSpotted = {
   id: string;
   name?: string;
@@ -105,50 +113,107 @@ const inactiveCats = selectedCycle
     return <main>Checking login...</main>;
   }
 
-  if (!user) {
-    return (
-      <main>
-        <h1>Cat Dashboard</h1>
-
-        <button onClick={handleGoogleLogin}>
-          Sign in with Google
-        </button>
-
-        {error && <p>{error}</p>}
-      </main>
-    );
-  }
+if (!user) {
+  return (
+    <LoginPage
+      onLogin={handleGoogleLogin}
+    />
+  );
+}
 
   return (
-    <main>
-      <h1>Cat Dashboard</h1>
+  <Container size="xl" py="xl">
+    <Container size="xl" py="xl">
+  <Stack gap="xl">
 
-      <p>
-        Signed in as: <strong>{user.email}</strong>
-      </p>
+  <Group
+  justify="space-between"
+  align="flex-end"
+>
+  <div>
+    <Text
+      size="sm"
+      c="dimmed"
+      mb={4}
+    >
+      PS C:\cat-monitor&gt;
+    </Text>
 
-      <button onClick={handleLogout}>
-        Sign out
-      </button>
-      <hr />
+    <Title order={1}>
+      CAT_MONITORING_DASHBOARD
+    </Title>
 
-      <CatStatusCard
-        selectedCycleId={selectedCycleId}
-        onCycleChange={setSelectedCycleId}
-        totalCats={totalCats}
-        activeCats={activeCats}
-        inactiveCats={inactiveCats}
-      />
-      <FeedingCard
-        cats={cats}
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-      />
-      <CatsByLocation cats={cats} />
-      <CatAlertsCard cats={cats} />
-    </main>
-  );
+    <Text
+      c="dimmed"
+      mt={4}
+      size="sm"
+    >
+      "Thanks for looking out for out neighbourhood cats."
+    </Text>
+  </div>
+
+  <div>
+    <Text
+      size="sm"
+      c="dimmed"
+      ta="right"
+    >
+      SIGNED_IN_AS
+    </Text>
+
+    <Text
+      size="sm"
+      fw={500}
+    >
+      {user.email}
+    </Text>
+
+    <Button
+      variant="subtle"
+      color="powershell"
+      size="xs"
+      mt="xs"
+      onClick={handleLogout}
+    >
+      [ SIGN_OUT ]
+    </Button>
+  </div>
+</Group>
+
+  <Group
+  align="flex-start"
+  grow
+  gap="lg"
+>
+  {/* Left column */}
+  <Stack gap="lg">
+    <CatStatusCard
+      selectedCycleId={selectedCycleId}
+      onCycleChange={setSelectedCycleId}
+      totalCats={totalCats}
+      activeCats={activeCats}
+      inactiveCats={inactiveCats}
+    />
+
+    <CatsByLocation cats={cats} />
+  </Stack>
+
+  {/* Right column */}
+  <Stack gap="lg">
+    <FeedingCard
+      cats={cats}
+      startDate={startDate}
+      endDate={endDate}
+      onStartDateChange={setStartDate}
+      onEndDateChange={setEndDate}
+    />
+
+    <CatAlertsCard cats={cats} />
+  </Stack>
+</Group>
+  </Stack>
+</Container>
+  </Container>
+);
 }
 
