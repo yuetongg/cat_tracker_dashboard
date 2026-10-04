@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import {
   onAuthStateChanged,
@@ -19,7 +19,7 @@ import { getLogsForCats } from "@/lib/catlogs";
 import { cycles } from "@/lib/cycles";
 import CatList from "@/components/CatList";
 
-export default function CatsPage() {
+function CatsPageContent() {
   const searchParams = useSearchParams();
 
   const alert = searchParams.get("alert");
@@ -62,10 +62,7 @@ export default function CatsPage() {
 
         setCats(catsWithLogs);
       } catch (error) {
-        console.error(
-          "Failed to load cats:",
-          error
-        );
+        console.error("Failed to load cats:", error);
       } finally {
         setLoading(false);
       }
@@ -93,8 +90,7 @@ export default function CatsPage() {
   }
 
   const selectedCycle =
-    cycles.find((cycle) => cycle.id === cycleId) ??
-    null;
+    cycles.find((cycle) => cycle.id === cycleId) ?? null;
 
   return (
     <CatList
@@ -115,5 +111,19 @@ export default function CatsPage() {
       }
       initialCycle={selectedCycle}
     />
+  );
+}
+
+export default function CatsPage() {
+  return (
+    <Suspense
+      fallback={
+        <Center mih="100vh">
+          <Loader />
+        </Center>
+      }
+    >
+      <CatsPageContent />
+    </Suspense>
   );
 }
