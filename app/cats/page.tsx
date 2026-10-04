@@ -16,11 +16,15 @@ import { useSearchParams } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { Cat } from "@/lib/types";
 import { getLogsForCats } from "@/lib/catlogs";
+import { cycles } from "@/lib/cycles";
 import CatList from "@/components/CatList";
 
 export default function CatsPage() {
   const searchParams = useSearchParams();
+
   const alert = searchParams.get("alert");
+  const status = searchParams.get("status");
+  const cycleId = searchParams.get("cycle");
 
   const [user, setUser] = useState<User | null>(null);
   const [cats, setCats] = useState<Cat[]>([]);
@@ -88,6 +92,10 @@ export default function CatsPage() {
     );
   }
 
+  const selectedCycle =
+    cycles.find((cycle) => cycle.id === cycleId) ??
+    null;
+
   return (
     <CatList
       cats={cats}
@@ -98,6 +106,14 @@ export default function CatsPage() {
             ? "not-seen"
             : null
       }
+      initialStatus={
+        status === "active"
+          ? "active"
+          : status === "inactive"
+            ? "inactive"
+            : null
+      }
+      initialCycle={selectedCycle}
     />
   );
 }

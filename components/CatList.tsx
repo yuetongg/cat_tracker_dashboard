@@ -20,9 +20,23 @@ import CatDetailModal from "./CatDetailModal";
 
 type AlertType = "injured" | "not-seen" | null;
 
+type StatusType =
+  | "active"
+  | "inactive"
+  | null;
+
+type Cycle = {
+  id: string;
+  name: string;
+  start: string;
+  end: string;
+};
+
 type Props = {
   cats: Cat[];
   initialAlert: AlertType;
+  initialStatus: StatusType;
+  initialCycle: Cycle | null;
 };
 
 function formatLastSpotted(cat: Cat) {
@@ -40,6 +54,7 @@ function formatLastSpotted(cat: Cat) {
     hour12: true,
   }).format(cat.lastSpotted.toDate());
 }
+
 function toSgDay(date: Date) {
   const [y, m, d] = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Singapore",
@@ -55,9 +70,13 @@ function getDaysAgo(cat: Cat): number | null {
   if (!cat.lastSpotted) return null;
 
   const diff =
-    toSgDay(new Date()) - toSgDay(cat.lastSpotted.toDate());
+    toSgDay(new Date()) -
+    toSgDay(cat.lastSpotted.toDate());
 
-  return Math.max(0, Math.round(diff / (24 * 60 * 60 * 1000)));
+  return Math.max(
+    0,
+    Math.round(diff / (24 * 60 * 60 * 1000))
+  );
 }
 
 function formatDaysAgo(days: number) {
@@ -71,13 +90,21 @@ function daysAgoColor(days: number) {
   if (days < 7) return "yellow";
   return "red";
 }
+
 export default function CatList({
   cats,
   initialAlert,
+  initialStatus,
+  initialCycle,
 }: Props) {
   const [alertFilter, setAlertFilter] =
     useState<AlertType>(initialAlert);
-    const router = useRouter();
+
+  const [statusFilter, setStatusFilter] =
+    useState<StatusType>(initialStatus);
+
+  const router = useRouter();
+
   const [locations, setLocations] =
     useState<string[]>([]);
 
@@ -102,6 +129,32 @@ export default function CatList({
     ).sort();
   }, [cats]);
 
+  /*
+   * Active = cat was last spotted
+   * during the selected cycle.
+   */
+  function isActiveInCycle(cat: Cat) {
+    if (!initialCycle || !cat.lastSpotted) {
+      return false;
+    }
+
+    const lastSpotted =
+      cat.lastSpotted.toDate();
+
+    const cycleStart = new Date(
+      `${initialCycle.start}T00:00:00`
+    );
+
+    const cycleEnd = new Date(
+      `${initialCycle.end}T23:59:59`
+    );
+
+    return (
+      lastSpotted >= cycleStart &&
+      lastSpotted <= cycleEnd
+    );
+  }
+
   const filteredCats = useMemo(() => {
     const sevenDaysAgo =
       Date.now() -
@@ -121,6 +174,19 @@ export default function CatList({
           cat.lastSpotted.toDate().getTime() >=
             sevenDaysAgo
         ) {
+          return false;
+        }
+      }
+
+      // Status filter
+      if (statusFilter === "active") {
+        if (!isActiveInCycle(cat)) {
+          return false;
+        }
+      }
+
+      if (statusFilter === "inactive") {
+        if (isActiveInCycle(cat)) {
           return false;
         }
       }
@@ -169,9 +235,11 @@ export default function CatList({
   }, [
     cats,
     alertFilter,
+    statusFilter,
     locations,
     feedingFilter,
     search,
+    initialCycle,
   ]);
 
   return (
@@ -184,49 +252,48 @@ export default function CatList({
         {/* Header */}
 
         <Stack gap="sm">
-        <button
+          <button
             onClick={() => router.push("/")}
             style={{
-            width: "fit-content",
-            backgroundColor: "#fff",
-            color: "#000",
-            border: "3px solid #000",
-            padding: "8px 14px",
-            fontFamily:
+              width: "fit-content",
+              backgroundColor: "#fff",
+              color: "#000",
+              border: "3px solid #000",
+              padding: "8px 14px",
+              fontFamily:
                 "Cascadia Mono, Consolas, monospace",
-            fontWeight: 800,
-            fontSize: "13px",
-            cursor: "pointer",
-            boxShadow: "4px 4px 0 #000",
+              fontWeight: 800,
+              fontSize: "13px",
+              cursor: "pointer",
+              boxShadow: "4px 4px 0 #000",
             }}
-        >
+          >
             ← BACK TO DASHBOARD
-        </button>
+          </button>
 
-        <Group
+          <Group
             justify="space-between"
             align="flex-end"
-        >
+          >
             <div>
-            <Title order={1}>
+              <Title order={1}>
                 Cats
-            </Title>
+              </Title>
 
-            <Text
+              <Text
                 size="sm"
                 c="dimmed"
                 mt={4}
-            >
+              >
                 View and filter monitored community cats
-            </Text>
+              </Text>
             </div>
 
             <Text fw={700}>
-            {filteredCats.length} cats
+              {filteredCats.length} cats
             </Text>
-        </Group>
+          </Group>
         </Stack>
-
 
         {/* Filters */}
 
@@ -262,28 +329,49 @@ export default function CatList({
               clearable
             />
 
-            <MultiSelect
-            label="Location"
-            placeholder="All locations"
-            data={availableLocations}
-            value={locations}
-            onChange={setLocations}
-            searchable
-            clearable
-            styles={{
-                pill: {
-                whiteSpace: "nowrap",
-                flexShrink: 0,
+            <Select
+              label="Status"
+              placeholder="All statuses"
+              value={statusFilter}
+              onChange={(value) =>
+                setStatusFilter(
+                  value as StatusType
+                )
+              }
+              data={[
+                {
+                  value: "active",
+                  label: "Active",
                 },
-                pillsList: {
-                flexWrap: "nowrap",
-                overflowX: "auto",
-                overflowY: "hidden",
-                scrollbarWidth: "thin",
+                {
+                  value: "inactive",
+                  label: "Inactive",
                 },
-            }}
+              ]}
+              clearable
             />
 
+            <MultiSelect
+              label="Location"
+              placeholder="All locations"
+              data={availableLocations}
+              value={locations}
+              onChange={setLocations}
+              searchable
+              clearable
+              styles={{
+                pill: {
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                },
+                pillsList: {
+                  flexWrap: "nowrap",
+                  overflowX: "auto",
+                  overflowY: "hidden",
+                  scrollbarWidth: "thin",
+                },
+              }}
+            />
 
             <Select
               label="Feeding"
@@ -433,7 +521,10 @@ export default function CatList({
                     </Text>
 
                     <Stack gap={2}>
-                      <Text size="xs" c="dimmed">
+                      <Text
+                        size="xs"
+                        c="dimmed"
+                      >
                         LAST SEEN
                       </Text>
 
@@ -459,35 +550,55 @@ export default function CatList({
                       </Text>
                     )}
 
-                    <Group gap="xs" mt="auto">
-                    <Badge
+                    <Group
+                      gap="xs"
+                      mt="auto"
+                    >
+                      <Badge
                         variant="light"
                         color={
-                        cat.feedingStatus === "fed"
+                          cat.feedingStatus ===
+                          "fed"
                             ? "green"
                             : "gray"
                         }
-                    >
-                        {cat.feedingStatus ?? "Unknown"}
-                    </Badge>
-                    {(() => {
-                        const days = getDaysAgo(cat);
+                      >
+                        {cat.feedingStatus ??
+                          "Unknown"}
+                      </Badge>
+
+                      {(() => {
+                        const days =
+                          getDaysAgo(cat);
 
                         return (
-                        <Badge
+                          <Badge
                             variant="light"
-                            color={days === null ? "gray" : daysAgoColor(days)}
-                        >
-                            {days === null ? "Never seen" : formatDaysAgo(days)}
-                        </Badge>
+                            color={
+                              days === null
+                                ? "gray"
+                                : daysAgoColor(
+                                    days
+                                  )
+                            }
+                          >
+                            {days === null
+                              ? "Never seen"
+                              : formatDaysAgo(
+                                  days
+                                )}
+                          </Badge>
                         );
-                    })()}
+                      })()}
 
-                    {cat.isInjured && (
-                        <Badge variant="light" color="red">
-                        Attention needed
+                      {cat.isInjured && (
+                        <Badge
+                          variant="light"
+                          color="red"
+                        >
+                          Attention needed
                         </Badge>
-                    )}
+                      )}
                     </Group>
                   </Stack>
                 </Group>

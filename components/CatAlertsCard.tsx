@@ -55,7 +55,7 @@ export default function CatAlertsCard({ cats }: Props) {
             c="dimmed"
             mt={4}
           >
-            Cats requiring attention
+            Cats requiring attention - click to view list of said cats
           </Text>
         </div>
 

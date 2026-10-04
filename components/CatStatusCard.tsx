@@ -13,7 +13,7 @@ import {
 
 import { cycles } from "@/lib/cycles";
 import { Cat } from "@/lib/types";
-
+import { useRouter } from "next/navigation";
 type Props = {
   selectedCycleId: string;
   onCycleChange: (cycleId: string) => void;
@@ -39,7 +39,7 @@ export default function CatStatusCard({
   const selectedCycle = cycles.find(
     (cycle) => cycle.id === selectedCycleId
   );
-
+const router = useRouter();
   const cycleOptions = cycles.map((cycle) => ({
     value: cycle.id,
     label: `${cycle.name} (${formatDate(
@@ -194,39 +194,57 @@ export default function CatStatusCard({
                 </Text>
               </div>
 
-              <div>
-                <Text
-                  size="sm"
-                  c="dimmed"
+             <div
+                onClick={() =>
+                    router.push(
+                        `/cats?status=inactive&cycle=${selectedCycleId}`
+                    )
+                    }
+                style={{
+                    cursor: "pointer",
+                }}
                 >
-                  Active
+                <Text
+                    size="sm"
+                    c="dimmed"
+                >
+                    Active
                 </Text>
 
                 <Text
-                  fw={700}
-                  size="1.4rem"
-                  c="green"
+                    fw={700}
+                    size="1.4rem"
+                    c="green"
                 >
-                  {activeCats.length}
+                    {activeCats.length}
                 </Text>
-              </div>
+                </div>
 
-              <div>
-                <Text
-                  size="sm"
-                  c="dimmed"
+              <div
+                    onClick={() =>
+                    router.push(
+                        `/cats?status=inactive&cycle=${selectedCycleId}`
+                    )
+                    }
+                style={{
+                    cursor: "pointer",
+                }}
                 >
-                  Inactive
+                <Text
+                    size="sm"
+                    c="dimmed"
+                >
+                    Inactive
                 </Text>
 
                 <Text
-                  fw={700}
-                  size="1.4rem"
-                  c="red"
+                    fw={700}
+                    size="1.4rem"
+                    c="red"
                 >
-                  {inactiveCats.length}
+                    {inactiveCats.length}
                 </Text>
-              </div>
+                </div>
             </Stack>
           </Group>
         )}
