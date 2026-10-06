@@ -197,7 +197,7 @@ const router = useRouter();
              <div
                 onClick={() =>
                     router.push(
-                        `/cats?status=inactive&cycle=${selectedCycleId}`
+                        `/cats?status=active&cycle=${selectedCycleId}`
                     )
                     }
                 style={{
