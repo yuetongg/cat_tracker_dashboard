@@ -148,7 +148,7 @@ if (!user) {
       mt={4}
       size="sm"
     >
-      "Thanks for looking out for out neighbourhood cats."
+      "Thanks for looking out for our community cats."
     </Text>
   </div>
 

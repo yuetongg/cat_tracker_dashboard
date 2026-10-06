@@ -65,10 +65,17 @@ export default function FeedingCard({
         activeLocations.reduce(
           (dayTotal, location) => dayTotal + Number(day[location] ?? 0),
           0
+          
         )
       );
     }, 0);
   }, [data, activeLocations]);
+
+console.log("DATE RANGE:", startDate, endDate);
+console.log("FILTERED DATA:", data);
+console.log("LOCATIONS:", locations);
+console.log("ACTIVE LOCATIONS:", activeLocations);
+
 
   const rangeLabel =
     startDate || endDate
@@ -201,6 +208,8 @@ function handleDateRangeChange(value: DatesRangeValue<string>) {
           <ReactECharts
             option={chartOption}
             onEvents={chartEvents}
+            notMerge={true}
+
             style={{
               width: "100%",
               height: 260,

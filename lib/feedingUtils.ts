@@ -1,9 +1,28 @@
 import { Cat } from "./types";
 
 function getSingaporeDate(timestamp: any): string {
-  return new Intl.DateTimeFormat("en-CA", {
+  const date = timestamp.toDate();
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Singapore",
-  }).format(timestamp.toDate());
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const year = parts.find(
+    (part) => part.type === "year"
+  )?.value;
+
+  const month = parts.find(
+    (part) => part.type === "month"
+  )?.value;
+
+  const day = parts.find(
+    (part) => part.type === "day"
+  )?.value;
+
+  return `${year}-${month}-${day}`;
 }
 
 export function getFeedingCount(
